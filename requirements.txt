@@ -1,0 +1,5 @@
+pandas
+unidecode
+geopandas
+streamlit
+matplotlib
