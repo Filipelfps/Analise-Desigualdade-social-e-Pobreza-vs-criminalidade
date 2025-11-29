@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import numpy as np
+import geopandas as gpd
+import matplotlib.pyplot as plt
 
 # --- Configuração da Página ---
 # A configuração da página deve ser o primeiro comando Streamlit
@@ -143,3 +145,39 @@ st.dataframe(df_filtrado)
 # if st.checkbox('Mostrar dados brutos'):
 #     st.subheader('Dados Brutos (Completos)')
 #     st.write(df)
+
+st.write("---") # Uma linha divisória visual
+st.subheader("Distribuição Espacial da Violência")
+
+# Função para carregar o mapa (usa cache para não travar)
+@st.cache_data
+def carregar_mapa():
+    # Carrega o arquivo GeoJSON que você subiu
+    return gpd.read_file("mapa_completo.geojson")
+
+try:
+    gdf_final = carregar_mapa()
+
+    # Criação da Figura (Exatamente como no seu print)
+    fig, ax = plt.subplots(figsize=(12, 10))
+    
+    gdf_final.plot(
+        column='taxa_homicidio_100k',
+        cmap='Reds',
+        legend=True,
+        legend_kwds={'label': "Taxa de Homicídios por 100k habitantes",
+                     'orientation': "vertical"},
+        edgecolor='gray',
+        linewidth=0.3,
+        missing_kwds={'color': 'lightgrey'},
+        ax=ax
+    )
+
+    ax.set_title('Distribuição Espacial da Violência', fontsize=15)
+    ax.set_axis_off() # Remove as bordas feias
+
+    # COMANDO MÁGICO DO STREAMLIT:
+    st.pyplot(fig) 
+
+except Exception as e:
+    st.error(f"Erro ao carregar o mapa. Verifique se o arquivo 'mapa_completo.geojson' está na pasta. Detalhe: {e}")
