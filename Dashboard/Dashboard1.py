@@ -17,19 +17,24 @@ st.set_page_config(
 # Isso evita que os dados sejam recarregados a cada interação do usuário.
 @st.cache_data
 def carregar_dados():
-    """Cria dados fictícios para a análise."""
-    bairros = ['Bairro A', 'Bairro B', 'Bairro C', 'Bairro D', 'Bairro E',
-               'Bairro F', 'Bairro G', 'Bairro H', 'Bairro I', 'Bairro J']
+    # Carrega o CSV que você exportou do notebook
+    # CERTO
+    df = pd.read_csv('dados_tratados_final.csv')
     
-    # Criando um DataFrame com dados fictícios
-    df = pd.DataFrame({
-        'Bairro': np.random.choice(bairros, 100),
-        'Ano': np.random.randint(2018, 2024, 100),
-        'Índice_Gini': np.random.uniform(0.4, 0.7, 100).round(2),
-        'Taxa_Desemprego_Pct': np.random.uniform(5.0, 20.0, 100).round(1),
-        'Renda_Media_Salarial': np.random.uniform(1.0, 4.5, 100).round(1),
-        'Taxa_Homicidios_100k': np.random.uniform(5.0, 50.0, 100).round(1)
+    # Faz o DE-PARA dos nomes das colunas
+    df = df.rename(columns={
+        'NM_MUNICIP': 'Bairro',  # O dashboard chama de Bairro, mas vamos colocar as Cidades aqui
+        'taxa_homicidio_100k': 'Taxa_Homicidios_100k', # Certifique-se que essa coluna existe no seu CSV exportado
+        'Índice de Gini 2010': 'Índice_Gini',
+        'Taxa de desocupação - 10 anos ou mais de idade 2010': 'Taxa_Desemprego_Pct', # Nome longo que aparece na imagem
+        'Renda per capita 2010': 'Renda_Media_Salarial'
     })
+    
+    # Criando uma coluna de Ano fictícia se não tiver no dataset, 
+    # pois o dashboard usa um filtro de ano
+    if 'Ano' not in df.columns:
+        df['Ano'] = 2010 
+        
     return df
 
 # Carrega os dados
@@ -39,12 +44,22 @@ df = carregar_dados()
 st.sidebar.header('Filtros Interativos')
 
 # Filtro de Ano (Slider)
-ano_selecionado = st.sidebar.slider(
-    'Selecione o Ano:',
-    min_value=int(df['Ano'].min()),
-    max_value=int(df['Ano'].max()),
-    value=int(df['Ano'].max()) # Valor padrão é o ano máximo
-)
+# --- Filtro de Ano Inteligente ---
+min_ano = int(df['Ano'].min())
+max_ano = int(df['Ano'].max())
+
+if min_ano == max_ano:
+    # Se só existe um ano nos dados (2010), mostra apenas texto
+    st.sidebar.markdown(f"**Dados disponíveis para o ano: {min_ano}**")
+    ano_selecionado = min_ano
+else:
+    # Se existirem vários anos, mostra o slider
+    ano_selecionado = st.sidebar.slider(
+        'Selecione o Ano:',
+        min_value=min_ano,
+        max_value=max_ano,
+        value=max_ano
+    )
 
 # Filtro de Bairro (Multiselect)
 bairros_selecionados = st.sidebar.multiselect(
