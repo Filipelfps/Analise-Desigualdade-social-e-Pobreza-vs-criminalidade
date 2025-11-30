@@ -224,6 +224,61 @@ try:
 
     st.pyplot(fig_gini)
 
+    # --- TABELA: TOP 10 DESIGUALDADE ---
+    st.write("### 📉 Detalhamento: Os 10 Municípios mais Desiguais")
+    
+    # 1. Filtra os dados (A mágica acontece no .nlargest)
+    # Buscamos os 10 maiores valores na coluna do Gini
+    top_10_gini = gdf_final.nlargest(10, 'Índice de Gini 2010')[
+        ['NM_MUNICIP', 'Índice de Gini 2010', 'População total 2010']
+    ]
+
+    # 2. Estética: Renomear para ficar bonito na tela
+    top_10_gini_formatada = top_10_gini.rename(columns={
+        'NM_MUNICIP': 'Município',
+        'Índice de Gini 2010': 'Índice de Gini',
+        'População total 2010': 'População Total'
+    })
+
+    # Exibir a Tabela
+    st.dataframe(
+        top_10_gini_formatada, 
+        hide_index=True, 
+        use_container_width=True
+    )
+
+    # Mapa 3: Distribuição Espacial da Renda
+    st.write("---") 
+    st.subheader("Distribuição Espacial da Renda (2010)")
+
+    fig_ren, ax_ren = plt.subplots(figsize=(12, 10))
+
+    
+    # Limpeza de dados devido a conflitos de nomecltura:
+    colunas_candidatas = [col for col in gdf_final.columns if "Renda" in col]
+    if len(colunas_candidatas) == 0:
+        print("❌ ERRO GRAVE: A coluna de Renda sumiu do DataFrame!")
+        print("Colunas disponíveis:", gdf_final.columns.tolist())
+    else:
+        nome_coluna_renda = colunas_candidatas[0]
+        
+        try:
+            gdf_final[nome_coluna_renda] = gdf_final[nome_coluna_renda].astype(str).str.replace(',', '.').astype(float)
+        except:
+            pass
+
+    # Fim do bloco de Limpeza
+    gdf_final.plot(
+        column=nome_coluna_renda,  # Usa o nome que achamos automaticamente
+        cmap='Greens',             # Verde = Dinheiro
+        legend=True,
+        legend_kwds={'label': "Renda per Capita (R$)", 'orientation': "vertical"},
+        edgecolor='gray',
+        linewidth=0.3,
+        missing_kwds={'color': '#f0f0f0', 'label': 'Sem dados'},
+        ax=ax_ren
+    )
+
 
 except Exception as e:
     st.error(f"Erro ao carregar o mapa. Verifique se o arquivo 'mapa_completo.geojson' está na pasta. Detalhe: {e}")
