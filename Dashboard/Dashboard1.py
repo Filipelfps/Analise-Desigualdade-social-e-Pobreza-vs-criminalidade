@@ -157,9 +157,12 @@ def carregar_mapa():
 
 try:
     gdf_final = carregar_mapa()
-
-    # Criação da Figura (Exatamente como no seu print)
-    fig, ax = plt.subplots(figsize=(12, 10))
+     
+    # Mapa 1: Violencia
+    st.subheader("Distribuição da Violência")
+    
+    # Criação da Figura 
+    fig_vio, ax_vio = plt.subplots(figsize=(12, 10))
     
     gdf_final.plot(
         column='taxa_homicidio_100k',
@@ -170,14 +173,46 @@ try:
         edgecolor='gray',
         linewidth=0.3,
         missing_kwds={'color': 'lightgrey'},
-        ax=ax
+        ax=ax_vio
     )
 
-    ax.set_title('Distribuição Espacial da Violência', fontsize=15)
-    ax.set_axis_off() # Remove as bordas feias
+    ax_vio.set_axis_off() 
+    st.pyplot(fig_vio) 
 
-    # COMANDO MÁGICO DO STREAMLIT:
-    st.pyplot(fig) 
+    # --- TABELA: TOP 10 VIOLÊNCIA ---
+    st.write("### 🚨 Detalhamento: Os 10 Municípios com Maiores Taxas")
+    
+    # Pegamos os 10 maiores e selecionamos só as colunas que importam
+    top_10_violencia = gdf_final.nlargest(10, 'taxa_homicidio_100k')[
+        ['NM_MUNICIP', 'taxa_homicidio_100k', 'População total 2010']
+    ]
+
+    # Renomeando as collunas para ficar mais agradavel
+    top_10_formatada = top_10_violencia.rename(columns={
+        'NM_MUNICIP': 'Município',
+        'taxa_homicidio_100k': 'Homicídios (por 100k hab)',
+        'População total 2010': 'População Total'
+    })
+
+    # Exibindo a Tabela
+    st.dataframe(
+        top_10_formatada, 
+        hide_index=True, 
+        use_container_width=True
+    )
+
+
+
+    # Mapa 2: Desigualdade Social
+    #st.write("---") 
+    #st.subheader("Distribuição da Desigualdade Social (Gini)")
+
+
+    #fig_gini, ax_gini = plt.subplots(figsize=(12, 10))
+
+
+
+
 
 except Exception as e:
     st.error(f"Erro ao carregar o mapa. Verifique se o arquivo 'mapa_completo.geojson' está na pasta. Detalhe: {e}")
