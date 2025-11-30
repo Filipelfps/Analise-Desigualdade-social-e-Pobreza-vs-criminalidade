@@ -201,17 +201,28 @@ try:
         use_container_width=True
     )
 
-
-
     # Mapa 2: Desigualdade Social
-    #st.write("---") 
-    #st.subheader("Distribuição da Desigualdade Social (Gini)")
+    st.write("---") 
+    st.subheader("Distribuição da Desigualdade Social (Gini)")
 
 
-    #fig_gini, ax_gini = plt.subplots(figsize=(12, 10))
+    fig_gini, ax_gini = plt.subplots(figsize=(12, 10))
 
+    gdf_final.plot(
+    column='Índice de Gini 2010', 
+    cmap='Blues', 
+    legend=True,
+    legend_kwds={'label': "Índice de Gini (0 a 1)", 'orientation': "vertical"},
+    edgecolor='gray',
+    linewidth=0.3,
+    missing_kwds={'color': '#f0f0f0', 'label': 'Dados indisponíveis'},
+    ax=ax_gini
+    )
 
+    plt.tight_layout()
+    ax_gini.set_axis_off()
 
+    st.pyplot(fig_gini)
 
 
 except Exception as e:
